@@ -1,0 +1,32 @@
+<launch>
+
+	<!-- Gazebo world -->
+	<!-- <include file="$(find gazebo_ros)/launch/empty_world.launch">
+		<arg name="world_name" value="worlds/empty.world"/> 
+		<arg name="paused" value="false"/>
+		<arg name="use_sim_time" value="true"/>
+		<arg name="gui" value="true"/>
+		<arg name="recording" value="false"/>
+		<arg name="debug" value="false"/>
+  	</include> -->
+
+	<!-- Robot -->
+	<param name="robot_description"
+    		command="$(find xacro)/xacro --inorder '$(find scara)/urdf/scara.xacro'" />
+	<node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" 
+		output="screen" args="-urdf -model scara -param robot_description"/>
+
+	<!-- loads the controllers -->
+	<rosparam file="$(find scara)/config/scara_control.yaml" command="load" />
+	<node name="controller_spawner" pkg="controller_manager" type="spawner"
+		ns="/scara" args="joint_state_controller
+				    dof1_position_controller
+				    dof2_position_controller
+				    dof3_position_controller"/> 
+	
+	<!-- converts joint states to TF transforms -->
+	<node name="robot_state_publisher" pkg="robot_state_publisher" 
+			type="robot_state_publisher" respawn="false" output="screen">
+	    <remap from="/joint_states" to="/scara/joint_states" />
+	</node>
+</launch>

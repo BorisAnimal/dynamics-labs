@@ -1,0 +1,26 @@
+<launch>
+    <arg name="model" default="$(find scara)/urdf/scara.xacro"/>
+    <arg name="gui" default="true"/>
+
+    <param name="robot_description" command="$(find xacro)/xacro $(arg model)" />
+    <param name="use_gui" value="$(arg gui)"/>
+
+
+    <!-- loads the controllers -->
+	<!-- <rosparam file="$(find scara)/config/scara_control.yaml" command="load" />
+	<node name="controller_spawner" pkg="controller_manager"
+         type="spawner"
+         args="joint_state_controller
+                dof1_position_controller
+                dof2_position_controller
+                dof3_position_controller" /> -->
+
+    <node name="joint_state_publisher_gui" pkg="joint_state_publisher" type="joint_state_publisher" />
+    
+    <!-- converts joint states to TF transforms -->
+	<node name="robot_state_publisher" pkg="robot_state_publisher" 
+			type="robot_state_publisher" respawn="false" output="screen" />
+
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find scara)/config/scara.rviz" required="true"/>
+
+</launch>

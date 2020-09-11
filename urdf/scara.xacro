@@ -1,0 +1,194 @@
+<?xml version="1.0"?>
+
+<robot name="scara" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- CONSTANTS -->
+  <xacro:property name="PI" value="3.1415926535897931"/>
+
+  <!-- Base params -->
+  <xacro:property name="BASE_L" value="0.6"/>
+  <xacro:property name="BASE_R" value="0.2"/>
+  <!-- dof1 params -->
+  <xacro:property name="DOF1_L" value="1.0"/>
+  <!-- dof2 params -->
+  <xacro:property name="DOF2_L" value="0.8"/>
+  <!-- dof3 params -->
+  <xacro:property name="DOF3_L" value="${BASE_L}"/>
+
+  <xacro:property name="MASS" value="1.0"/>
+
+
+  <!-- MATERIALS -->
+  <material name="blue">
+    <color rgba="0 0 0.8 1"/>
+  </material>
+
+  <material name="white">
+    <color rgba="1 1 1 1"/>
+  </material>
+
+
+  <!-- 1. World reference -->
+  <link name="world"/>
+
+  
+  <!-- 2. Robot base link -->
+  <link name="robot_base">
+    <visual>
+      <geometry>
+        <cylinder length="${BASE_L}" radius="${BASE_R}"/>
+      </geometry>
+      <material name="blue"/>
+
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </visual>
+
+    <inertial>
+      <mass value="${MASS}"/>
+      <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0"/>
+    </inertial>
+  </link>
+
+  <joint name="base2world" type="fixed">
+    <parent link="world"/>
+    <child link="robot_base"/>
+
+    <origin xyz="0 0 ${BASE_L/2}" rpy="0 0 0"/>
+  </joint>
+
+  <!-- 3. Robot arm links -->
+  <!-- DOF 1 (R) -->
+  <link name="robot_arm_dof1">
+    <visual>
+      <geometry>
+        <box size="${DOF1_L} 0.2 0.2"/>
+      </geometry>
+
+      <material name="white"/>
+
+      <origin xyz="${DOF1_L / 2} 0 0" rpy="0 0 0"/>
+    </visual>
+
+    <inertial>
+      <mass value="${MASS}" />
+      <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0" />
+
+      <origin xyz="${DOF1_L / 2} 0 0" rpy="0 0 0"/>
+    </inertial>
+  </link>
+
+  <joint name="dof1_joint" type="continuous">
+    <parent link="robot_base"/>
+    <child link="robot_arm_dof1"/>
+    <axis xyz="0 0 1"/>
+    
+    <origin xyz="0 0 ${BASE_L / 2}"/>
+  </joint>
+
+
+  <!-- DOF 2 (R) -->
+  <link name="robot_arm_dof2">
+    <visual>
+      <geometry>
+        <box size="${DOF2_L} 0.2 0.2"/>
+      </geometry>
+
+      <material name="white"/>
+
+      <origin xyz="${DOF2_L / 2} 0 0" rpy="0 0 0"/>
+    </visual>
+
+    <inertial>
+      <mass value="${MASS}" />
+      <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0" />
+
+      <origin xyz="${DOF2_L / 2} 0 0" rpy="0 0 0"/>
+    </inertial>
+  </link>
+
+  <joint name="dof2_joint" type="continuous">
+    <parent link="robot_arm_dof1"/>
+    <child link="robot_arm_dof2"/>
+    <axis xyz="0 0 1"/>
+
+    <origin xyz="${DOF1_L} 0 0"/>
+  </joint>
+
+  <!-- DOF 3 (T) -->
+  <link name="robot_arm_dof3">
+    <visual>
+      <geometry>
+        <cylinder length="${DOF3_L}" radius="${BASE_R / 4}"/>
+      </geometry>
+
+      <material name="blue"/>
+
+      <origin xyz="0 0 ${-DOF3_L / 2}" rpy="0 0 0"/>
+    </visual>
+
+    <inertial>
+      <mass value="${MASS}" />
+      <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0" />
+
+      <origin xyz="0 0 ${-DOF3_L / 2}" rpy="0 0 0"/>
+    </inertial>
+  </link>
+
+  <joint name="dof3_joint" type="prismatic">
+    <parent link="robot_arm_dof2"/>
+    <child link="robot_arm_dof3"/>
+    <limit effort="1000.0" lower="0" upper="${DOF3_L}" velocity="0.5"/>
+
+    <axis xyz="0 0 1"/>
+
+    <origin rpy="0 0 0" xyz="${DOF2_L} 0 0"/>    
+  </joint>
+
+
+  <!-- TODO: Endeffector link + Joint -->
+
+
+  <!-- Actually, not needed. Just to be for future -->
+  <!--                GAZEBO RELATED PART                             -->
+  <!-- ROS Control plugin for Gazebo -->
+  <gazebo>
+    <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+      <robotNamespace>/scara</robotNamespace>
+    </plugin>
+  </gazebo>
+
+  <!-- transmission -->
+  <transmission name="tran0">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="dof1_joint">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="motor0">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+
+  <transmission name="tran1">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="dof2_joint">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="motor1">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+
+  <transmission name="tran2">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="dof3_joint">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="motor2">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+
+</robot>
