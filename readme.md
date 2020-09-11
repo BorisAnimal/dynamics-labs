@@ -1,6 +1,6 @@
 # Simple model of SCARA cylindric robot
 
-![https://github.com/BorisAnimal/dynamics-labs/blob/master/media/scara-3d.png]
+![](https://github.com/BorisAnimal/dynamics-labs/blob/master/media/scara-3d.png)
 
 ## Dependencies
 
@@ -21,4 +21,4 @@ python scripts/control.py
 ```
 
 ## URDF tree structure
-![https://github.com/BorisAnimal/dynamics-labs/blob/master/media/urdf-tree.png]
+![](https://github.com/BorisAnimal/dynamics-labs/blob/master/media/urdf-tree.png)
